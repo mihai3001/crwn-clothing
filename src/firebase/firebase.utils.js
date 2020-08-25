@@ -18,10 +18,10 @@ firebase.initializeApp(config);
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
 
-const provider = new firebase.auth.GoogleAuthProvider();
-provider.setCustomParameters({ prompt: 'select_account' });
+export const googleProvider = new firebase.auth.GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-export const signInWithGoogle = () => auth.signInWithPopup(provider);
+export const signInWithGoogle = () => auth.signInWithPopup(googleProvider);
 
 export const createUserProfileDocument = async (userAuth, additionalData) => {
     if (!userAuth) return;
@@ -63,7 +63,7 @@ export const addCollectionAndDocuments = async (collectionKey, objectsToAdd) => 
 export const convertCollectionsSnapshotToMap = (collections) => {
     const transformedCollection = collections.docs.map(
         doc => {
-            const {title, items} = doc.data();
+            const { title, items } = doc.data();
             return {
                 routeName: encodeURI(title.toLowerCase()),
                 id: doc.id,
@@ -75,8 +75,15 @@ export const convertCollectionsSnapshotToMap = (collections) => {
     return transformedCollection.reduce((acumulator, collection) => {
         acumulator[collection.title.toLowerCase()] = collection;
         return acumulator
-    } , {})
+    }, {})
 }
 
-
+export const getCurrentUser = () => {
+    return new Promise((resolve, reject) => {
+        const unsubscribe = auth.onAuthStateChanged(userAuth=> {
+            unsubscribe();
+            resolve(userAuth);
+        }, reject);
+    })
+}
 export default firebase;
